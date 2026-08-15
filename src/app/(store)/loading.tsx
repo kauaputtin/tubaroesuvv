@@ -1,0 +1,2 @@
+export default function StoreLoading(){return <div className="mx-auto max-w-7xl animate-pulse px-4 py-14 sm:px-6 lg:px-8"><div className="h-5 w-28 rounded bg-slate-100"/><div className="mt-4 h-12 w-96 max-w-full rounded bg-slate-100"/><div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">{Array.from({length:8},(_,index)=><div key={index} className="aspect-[0.72] rounded-2xl bg-slate-100"/>)}</div></div>}
+

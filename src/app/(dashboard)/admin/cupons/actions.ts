@@ -1,0 +1,7 @@
+"use server";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireAdmin } from "@/lib/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+export async function saveCoupon(formData:FormData){const admin=await requireAdmin("coupons.manage");const parsed=z.object({id:z.string().optional(),code:z.string().trim().min(3),type:z.enum(["fixed","percentage"]),value:z.coerce.number().positive(),minimum_order:z.coerce.number().min(0),total_usage_limit:z.union([z.literal(""),z.coerce.number().int().positive()]).optional(),per_customer_limit:z.coerce.number().int().positive(),starts_at:z.string().optional(),ends_at:z.string().optional(),free_shipping:z.boolean(),active:z.boolean()}).parse({...Object.fromEntries(formData.entries()),free_shipping:formData.has("free_shipping"),active:formData.has("active")});const {id,total_usage_limit,starts_at,ends_at,...rest}=parsed;const payload={...rest,code:rest.code.toUpperCase(),total_usage_limit:total_usage_limit===""?null:total_usage_limit,starts_at:starts_at||null,ends_at:ends_at||null};const supabase=(await createSupabaseServerClient())!;const result=id?await supabase.from("coupons").update(payload).eq("id",id):await supabase.from("coupons").insert(payload);if(result.error)throw new Error(result.error.message);await supabase.from("audit_logs").insert({actor_id:admin.userId,action:id?"coupon.update":"coupon.create",entity_type:"coupon",entity_id:id,new_data:payload});revalidatePath("/admin/cupons");}
+

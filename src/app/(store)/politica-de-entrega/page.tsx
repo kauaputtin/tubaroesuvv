@@ -1,0 +1,4 @@
+import { Truck } from "lucide-react";
+import { ContentPage } from "@/components/content-page";
+export default function DeliveryPolicyPage(){return <ContentPage title="Entrega e retirada" intro="Escolha no checkout entre retirada gratuita na UVV, entrega local ou envio para endereço." icon={Truck}><h2>Retirada na UVV</h2><p>A retirada é gratuita. Após a confirmação do pagamento e a separação do pedido, enviamos uma mensagem com o local e os horários disponíveis no campus.</p><h2>Entrega local</h2><p>A disponibilidade e a taxa são mostradas no checkout. O cliente deve garantir que haja uma pessoa autorizada para receber o pedido.</p><h2>Envio para endereço</h2><p>O prazo começa após a aprovação do pagamento. Quando houver rastreamento, o código ficará disponível na página do pedido.</p><h2>Endereço incorreto</h2><p>Confira os dados antes de pagar. Custos de reenvio causados por endereço incompleto ou incorreto poderão ser cobrados.</p></ContentPage>}
+

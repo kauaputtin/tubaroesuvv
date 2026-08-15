@@ -1,0 +1,6 @@
+"use server";
+import { revalidatePath, updateTag } from "next/cache";
+import { z } from "zod";
+import { requireAdmin } from "@/lib/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+export async function saveCategory(formData:FormData){const admin=await requireAdmin("products.manage");const parsed=z.object({id:z.string().optional(),name:z.string().trim().min(2),slug:z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),description:z.string().max(300).optional(),sort_order:z.coerce.number().int().min(0),active:z.boolean(),featured:z.boolean()}).parse({...Object.fromEntries(formData.entries()),active:formData.has("active"),featured:formData.has("featured")});const {id,...payload}=parsed;const supabase=(await createSupabaseServerClient())!;const result=id?await supabase.from("categories").update(payload).eq("id",id):await supabase.from("categories").insert(payload);if(result.error)throw new Error(result.error.message);await supabase.from("audit_logs").insert({actor_id:admin.userId,action:id?"category.update":"category.create",entity_type:"category",entity_id:id,new_data:payload});updateTag("catalog-categories");revalidatePath("/admin/categorias");revalidatePath("/");}

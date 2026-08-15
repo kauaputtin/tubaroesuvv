@@ -1,0 +1,20 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(14);
+select has_table('public','products','products existe');
+select has_table('public','orders','orders existe');
+select has_table('public','payments','payments existe');
+select has_table('public','payment_events','eventos de pagamento existem');
+select has_table('public','inventory_movements','movimentações existem');
+select has_function('public','quote_order',array['jsonb','text','text'],'cotação existe');
+select has_function('public','create_pending_order','criação atômica existe');
+select has_function('public','process_payment_status','processamento idempotente existe');
+select has_function('public','release_expired_reservations','liberação de reservas existe');
+select col_is_unique('public','orders','tracking_token','token de consulta é único');
+select col_is_unique('public','payments','idempotency_key','chave de pagamento é única');
+select col_is_unique('public','inventory_movements','idempotency_key','movimentação não duplica');
+select results_eq($$select (quote_order('[{"productId":"copo-tubaroes","quantity":2,"options":{}}]'::jsonb,'pickup','BEMVINDO10')->>'total')::numeric$$,$$values (18.00::numeric)$$,'cupom é recalculado no banco');
+select throws_ok($$select quote_order('[{"productId":"camisa-cc-preta","quantity":20,"options":{"Tamanho":"M"}}]'::jsonb,'pickup',null)$$,'Estoque insuficiente para Camisa Ciência da Computação Preta','estoque insuficiente é rejeitado');
+select * from finish();
+rollback;
+

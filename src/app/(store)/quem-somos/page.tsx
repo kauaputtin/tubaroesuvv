@@ -1,0 +1,4 @@
+import { Waves } from "lucide-react";
+import { ContentPage } from "@/components/content-page";
+export default function AboutPage(){return <ContentPage title="Quem somos" intro="A loja oficial da Atlética Tubarões UVV nasce para transformar a identidade do nosso cardume em produtos que acompanham a vida universitária." icon={Waves}><h2>Mais que uma atlética</h2><p>Somos uma comunidade formada por estudantes dos cursos de tecnologia da UVV. Organizamos esporte, integração, cultura e experiências que deixam a graduação mais viva.</p><h2>Produtos oficiais</h2><p>Cada item da loja ajuda a fortalecer as ações da atlética. Trabalhamos com fornecedores selecionados e lotes controlados para entregar qualidade, identidade e transparência.</p><h2>Feito pelo cardume</h2><p>Da escolha dos produtos ao atendimento, a operação é conduzida com proximidade. Se tiver qualquer dúvida ou ideia, fale com a gente.</p></ContentPage>}
+
