@@ -94,7 +94,28 @@ npx supabase link --project-ref SEU_PROJECT_REF
 npx supabase db push
 ```
 
-A migration [202608150001_initial_schema.sql](supabase/migrations/202608150001_initial_schema.sql) cria o schema, RLS, bucket `product-images`, funções transacionais e dados iniciais.
+São duas migrations, aplicadas nesta ordem:
+
+| Arquivo | O que faz |
+|---|---|
+| [202608150001_initial_schema.sql](supabase/migrations/202608150001_initial_schema.sql) | schema, RLS, bucket `product-images`, funções transacionais e dados iniciais |
+| [202608160001_cpf_sem_texto_puro.sql](supabase/migrations/202608160001_cpf_sem_texto_puro.sql) | `create_pending_order` passa a receber `cpf_hash` + `cpf_last4` prontos; o CPF cru nunca chega ao banco |
+| [202608160002_view_e_funcoes_expostas.sql](supabase/migrations/202608160002_view_e_funcoes_expostas.sql) | `admin_dashboard_summary` com `security_invoker`; funções auxiliares fora do alcance do `anon` |
+
+> **RLS ligada na tabela não cobre a view.** `admin_dashboard_summary` rodava
+> com os privilégios do dono (`postgres`) e entregava o faturamento a qualquer
+> visitante com a chave publicável, mesmo com `orders` protegida. Ao criar view
+> nova sobre tabela com RLS, use `with (security_invoker = on)`.
+>
+> **Revoke de função:** no Postgres o EXECUTE nasce concedido a `PUBLIC`, e
+> `anon`/`authenticated` herdam. `revoke ... from anon` sozinho não fecha nada;
+> é preciso `revoke ... from public` e devolver o grant a quem precisa.
+
+> **`CPF_HASH_KEY` é obrigatória.** O hash do CPF é um HMAC calculado no servidor
+> com essa chave. SHA-256 sem segredo não protegeria nada aqui: o CPF tem cerca
+> de 10⁹ valores válidos, e uma tabela com todos eles se gera em minutos. Se a
+> chave mudar, os hashes antigos deixam de casar — trate como segredo
+> permanente e guarde uma cópia.
 
 ### Primeiro administrador
 

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { createMercadoPagoPayment, isMercadoPagoConfigured } from "@/lib/mercado-pago";
+import { createMercadoPagoPayment, isMercadoPagoConfigured, mapPaymentStatus, resumoDoPagamento } from "@/lib/mercado-pago";
+import { cpfHashConfigurado, identificacaoDoCpf } from "@/lib/cpf-hash";
 import { rateLimit } from "@/lib/rate-limit";
 import { createAdminClient, isSupabaseConfigured } from "@/lib/supabase/admin";
 import { checkoutSchema } from "@/lib/validators";
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Revise os dados informados.", fields: parsed.error.flatten().fieldErrors }, { status: 422 });
   }
 
-  if (!isSupabaseConfigured() || !isMercadoPagoConfigured()) {
+  if (!isSupabaseConfigured() || !isMercadoPagoConfigured() || !cpfHashConfigurado()) {
     return NextResponse.json(
       {
         error: "Checkout aguardando a configuração segura do Supabase e do Mercado Pago.",
@@ -50,11 +51,13 @@ export async function POST(request: Request) {
   const quote = quoteData as unknown as { subtotal: number; discount: number; shipping: number; total: number; couponCode: string | null };
   const calculated = { ...quote, items: parsed.data.items };
   const { data: orderData, error: orderError } = await supabase.rpc("create_pending_order", {
+    // O CPF cru não vai para o banco: só o HMAC e os quatro últimos dígitos.
+    // Ele continua vivo nesta requisição apenas para seguir ao gateway.
     p_customer: {
       full_name: parsed.data.fullName,
       email: parsed.data.email.toLowerCase(),
       phone: parsed.data.phone,
-      cpf: parsed.data.cpf.replace(/\D/g, ""),
+      ...identificacaoDoCpf(parsed.data.cpf),
       course: parsed.data.course,
     },
     p_address: parsed.data.fulfillment === "pickup" ? null : {
@@ -102,7 +105,8 @@ export async function POST(request: Request) {
       idempotencyKey,
     });
 
-    const status = payment.status ?? "pending";
+    const status = mapPaymentStatus(payment.status);
+    const resumo = resumoDoPagamento(payment);
     await supabase.from("payments").insert({
       order_id: order.order_id,
       provider: "mercado_pago",
@@ -112,9 +116,24 @@ export async function POST(request: Request) {
       amount: calculated.total,
       installments: payment.installments ?? 1,
       idempotency_key: idempotencyKey,
-      raw_response: payment,
+      raw_response: resumo,
     });
-    await supabase.from("orders").update({ payment_status: status === "approved" ? "approved" : status === "rejected" ? "rejected" : "pending" }).eq("id", order.order_id);
+
+    // Quem muda o estado do pedido é SEMPRE process_payment_status, nunca um
+    // update direto. Cartão costuma voltar 'approved' já na criação; quando
+    // isso era gravado aqui na mão, o webhook seguinte encontrava o pedido já
+    // aprovado, caía fora do ramo que dá baixa no estoque, e a venda nunca
+    // saía do reservado: stock nunca diminuía e reserved_stock nunca voltava.
+    // A RPC é idempotente por (provider, event_id), então chamar aqui e no
+    // webhook dá baixa exatamente uma vez.
+    await supabase.rpc("process_payment_status", {
+      p_provider: "mercado_pago",
+      p_event_id: `checkout:${payment.id}:${status}`,
+      p_payment_id: String(payment.id),
+      p_order_id: order.order_id,
+      p_status: status,
+      p_payload: resumo,
+    });
 
     const pix = payment.point_of_interaction?.transaction_data;
     return NextResponse.json({

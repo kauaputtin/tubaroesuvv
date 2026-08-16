@@ -1,15 +1,6 @@
 import { NextResponse } from "next/server";
-import { getMercadoPagoPayment, validateMercadoPagoSignature } from "@/lib/mercado-pago";
+import { getMercadoPagoPayment, mapPaymentStatus, resumoDoPagamento, validateMercadoPagoSignature } from "@/lib/mercado-pago";
 import { createAdminClient, isSupabaseConfigured } from "@/lib/supabase/admin";
-
-function mapPaymentStatus(status?: string) {
-  if (status === "approved") return "approved";
-  if (status === "rejected") return "rejected";
-  if (status === "cancelled" || status === "charged_back") return "cancelled";
-  if (status === "refunded") return "refunded";
-  if (status === "in_process" || status === "in_mediation" || status === "authorized") return "processing";
-  return "pending";
-}
 
 export async function POST(request: Request) {
   if (!isSupabaseConfigured()) return NextResponse.json({ error: "Supabase não configurado." }, { status: 503 });
@@ -34,7 +25,7 @@ export async function POST(request: Request) {
       p_payment_id: String(payment.id),
       p_order_id: payment.external_reference,
       p_status: mapPaymentStatus(payment.status),
-      p_payload: payment,
+      p_payload: resumoDoPagamento(payment),
     });
     if (error) throw error;
     return NextResponse.json({ received: true });

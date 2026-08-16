@@ -62,6 +62,48 @@ export async function getMercadoPagoPayment(paymentId: string) {
   return paymentClient().get({ id: paymentId });
 }
 
+/** Status do Mercado Pago traduzido para o enum payment_status do banco. */
+export function mapPaymentStatus(status?: string) {
+  if (status === "approved") return "approved";
+  if (status === "rejected") return "rejected";
+  if (status === "cancelled" || status === "charged_back") return "cancelled";
+  if (status === "refunded") return "refunded";
+  if (status === "in_process" || status === "in_mediation" || status === "authorized") return "processing";
+  return "pending";
+}
+
+/**
+ * Recorte do pagamento que pode ser gravado.
+ *
+ * A resposta crua do Mercado Pago traz `payer.identification.number` — o CPF
+ * completo, o mesmo que enviamos na cobrança. Guardá-la inteira anulava a
+ * decisão de só persistir hash + quatro últimos dígitos: bastava ler
+ * payments.raw_response para ter o CPF de todo mundo em texto puro.
+ *
+ * Aqui fica só o que a operação precisa para conciliar e dar suporte.
+ */
+export function resumoDoPagamento(payment: unknown) {
+  const p = payment as Record<string, unknown>;
+  const poi = p.point_of_interaction as { transaction_data?: Record<string, unknown> } | undefined;
+  return {
+    id: p.id,
+    status: p.status,
+    status_detail: p.status_detail,
+    payment_method_id: p.payment_method_id,
+    payment_type_id: p.payment_type_id,
+    transaction_amount: p.transaction_amount,
+    installments: p.installments,
+    currency_id: p.currency_id,
+    date_created: p.date_created,
+    date_approved: p.date_approved,
+    date_last_updated: p.date_last_updated,
+    date_of_expiration: p.date_of_expiration,
+    external_reference: p.external_reference,
+    // Do PIX interessa a validade e o ticket; o QR não precisa ser guardado.
+    pix: poi?.transaction_data ? { ticket_url: poi.transaction_data.ticket_url } : null,
+  };
+}
+
 export async function refundMercadoPagoPayment(paymentId: string, idempotencyKey: string) {
   return new PaymentRefund(mercadoPagoConfig()).total({ payment_id: paymentId, requestOptions: { idempotencyKey } });
 }
