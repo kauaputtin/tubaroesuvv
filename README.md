@@ -175,6 +175,18 @@ O webhook aprovado converte a reserva em venda. Cancelamentos e recusas liberam 
 
 Na Vercel, defina `CRON_SECRET`. A plataforma envia automaticamente `Authorization: Bearer <CRON_SECRET>` ao job configurado em [vercel.json](vercel.json).
 
+> **O cron está diário, e isso não é o ideal.** O plano Hobby da Vercel recusa
+> qualquer agendamento mais frequente que uma vez por dia — o deploy falha com
+> `Hobby accounts are limited to daily cron jobs`. O projeto foi desenhado para
+> `*/10 * * * *`, e a diferença é concreta: uma reserva vencida segura produto
+> que poderia estar à venda por até 24 horas. Antes de operar de verdade,
+> escolha um dos dois caminhos:
+>
+> 1. **Plano Pro** e devolver o agendamento para `*/10 * * * *`; ou
+> 2. chamar `release_expired_reservations()` também no início de `quote_order`,
+>    para que reservas vencidas sejam limpas no exato momento em que alguém vai
+>    comprar — aí o cron diário vira só uma rede de segurança.
+
 ## Deploy na Vercel
 
 1. Importe este repositório na Vercel.
