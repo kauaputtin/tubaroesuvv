@@ -843,7 +843,7 @@ insert into shipping_methods (name,type,description,price,pickup_location,pickup
 insert into coupons (code,type,value,minimum_order,per_customer_limit,active) values ('BEMVINDO10','percentage',10,0,1,true);
 insert into store_settings (key,value,is_public) values
   ('identity','{"primary":"#00162f","accent":"#0a87f5","logo":"/assets/logo-tubaroes.png","favicon":"/favicon.ico"}',true),
-  ('contact','{"whatsapp":"5527999999999","email":"contato@tubaroesuvv.com.br","instagram":"tubaroesuvv"}',true),
+  ('contact','{"whatsapp":"5527997666427","email":"contato@tubaroesuvv.com.br","instagram":"tubaroesuvv"}',true),
   ('seo','{"title":"Tubarões UVV | Loja Oficial","description":"Vista a força do cardume."}',true);
 insert into homepage_sections (type,title,content,sort_order) values
   ('hero','Vista a força do cardume','{"eyebrow":"Loja oficial da atlética","cta":"Explorar a loja","href":"/produtos","image":"/assets/hero-ocean.png"}',1),

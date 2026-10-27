@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, Mail, MapPin, MessageCircle } from "lucide-react";
 
-export function StoreFooter({ whatsapp = "5527999999999", email = "contato@tubaroesuvv.com.br", instagram = "tubaroesuvv" }: { whatsapp?: string; email?: string; instagram?: string }) {
+export function StoreFooter({ whatsapp = "5527997666427", email = "contato@tubaroesuvv.com.br", instagram = "tubaroesuvv" }: { whatsapp?: string; email?: string; instagram?: string }) {
   return (
     <footer className="mt-auto bg-[color:var(--store-primary)] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
