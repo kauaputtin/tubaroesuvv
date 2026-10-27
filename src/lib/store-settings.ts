@@ -10,7 +10,7 @@ type StoreChromeSettings = {
 const defaultSettings: StoreChromeSettings = {
   identity: { primary: "#00162f", accent: "#0a87f5" },
   contact: {
-    whatsapp: "5527999999999",
+    whatsapp: "5527997666427",
     email: "contato@tubaroesuvv.com.br",
     instagram: "tubaroesuvv",
   },

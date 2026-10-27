@@ -12,7 +12,7 @@ export function PaymentResult({ status }: { status: "approved" | "rejected" }) {
         <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-500">{approved ? "Recebemos seu pagamento e o cardume já começou a preparar o pedido. Você receberá as próximas atualizações por e-mail e WhatsApp." : "Nenhum valor foi cobrado. Confira os dados do cartão ou escolha PIX para tentar novamente."}</p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link href={approved ? "/acompanhar-pedido" : "/checkout"} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-sky-500 px-6 text-sm font-black text-white">{approved ? <ShoppingBag size={17} /> : null}{approved ? "Acompanhar pedido" : "Tentar novamente"}</Link>
-          <a href="https://wa.me/5527999999999" target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 px-6 text-sm font-bold text-slate-700"><MessageCircle size={17} /> Falar com a gente</a>
+          <a href="https://wa.me/5527997666427" target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 px-6 text-sm font-bold text-slate-700"><MessageCircle size={17} /> Falar com a gente</a>
         </div>
       </div>
     </div>
